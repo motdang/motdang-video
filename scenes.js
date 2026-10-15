@@ -4,6 +4,13 @@ const SLOTS={
  noon:{hi_th:'เที่ยงนี้มีอะไร?',hi_en:"What's on today?",q_th:'วันนี้มีอะไรบ้าง?',q_en:"What's on?",cards:[['map','OPEN NOW'],['film','MOVIES'],['lant','COMING UP']],body:['openNow','cinema','festival'],cta_th:'ร้านเปิด หนังฉาย งานใกล้ตัว',cta_en:"What's open, showing and coming up"},
  evening:{hi_th:'คืนนี้ที่ภาคเหนือ',hi_en:'Tonight in the north',q_th:'คืนนี้มีอะไร?',q_en:"What's on tonight?",cards:[['moon','SKY TONIGHT'],['film','LATE SHOWS'],['sunrise','TOMORROW']],body:['sky','cinema','tomorrow'],cta_th:'วางแผนพรุ่งนี้ได้ที่นี่',cta_en:"Plan tomorrow, right here"}};
 const S=SLOTS[SLOT]||SLOTS.morning;
+const QS={morning:[['เช้านี้เป็นไงบ้าง?',"How's this morning?"],['ออกจากบ้านเช้านี้ ต้องรู้อะไร?','Before you head out'],['อรุณสวัสดิ์ ภาคเหนือ!','Good morning, the north']],
+ noon:[['วันนี้มีอะไรบ้าง?',"What's on?"],['เที่ยงนี้ไปไหนดี?','Where to this afternoon?'],['รู้ไว้ก่อนบ่ายนี้','Worth knowing today']],
+ evening:[['คืนนี้มีอะไร?',"What's on tonight?"],['ค่ำนี้ไปไหนดี?','Where to tonight?'],['ก่อนนอนคืนนี้','Before bed tonight']]};
+const qv=(QS[SLOT]||QS.morning)[(D.variant||0)%3];S.q_th=qv[0];S.q_en=qv[1];
+const CARD={weatherNow:['sky','WEATHER'],air:['haze','PM2.5'],forecast7:['cal','7 DAYS'],openNow:['map','OPEN NOW'],cinema:['film',SLOT==='evening'?'LATE SHOWS':'MOVIES'],festival:['lant','COMING UP'],sky:['moon','SKY TONIGHT'],tomorrow:['sunrise','TOMORROW'],
+ events:['cal','EVENTS'],fight:['fight','MUAY THAI'],money:['money','BAHT · GOLD'],airNorth:['haze','THE NORTH'],dayColour:['lotus','DAY COLOUR'],hotsprings:['steam','HOT SPRINGS'],seven:['store','7-ELEVEN'],elephants:['jungle','ELEPHANTS'],lottery:['ticket','LOTTERY']};
+if(Array.isArray(D.body)&&D.body.length===3){S.body=D.body;S.cards=D.body.map(k=>CARD[k]||['sky','TODAY'])}
 
 function illus(kind){
  const sunG=`<div class="abs" style="left:230px;top:70px;width:140px;height:140px;border-radius:50%;background:radial-gradient(#ffe08a,#f6b33a);box-shadow:0 0 60px 20px rgba(255,200,90,.5)"></div>`;
@@ -15,6 +22,13 @@ function illus(kind){
  if(kind==='lant'){seed=5;return `<div class="abs" style="inset:0;background:linear-gradient(#2b1d3a,#7a3a3a)"></div>`+[...Array(9)].map(()=>`<div class="lantern" style="left:${rnd()*540}px;top:${30+rnd()*300}px;transform:scale(${.7+rnd()})"></div>`).join('')}
  if(kind==='moon')return `<div class="abs" style="inset:0;background:linear-gradient(#141b3a,#3b2f5a)"></div><div class="abs" style="left:150px;top:10px;transform:scale(.55);transform-origin:0 0">${moonSVG(D.moon,180)}</div>`;
  if(kind==='sunrise')return `<div class="abs" style="inset:0;background:linear-gradient(#f9c98b,#fbe6c4)"></div><div class="abs" style="left:220px;top:190px;width:170px;height:170px;border-radius:50%;background:#f6a33a;box-shadow:0 0 70px 20px rgba(255,170,80,.6)"></div><svg class="abs" style="left:0;bottom:0" width="600" height="200"><path d="M0 120 Q150 40 300 110 T600 90 V200 H0Z" fill="#5aa86a"/><path d="M0 160 Q200 100 380 150 T600 140 V200 H0Z" fill="#3f8a52"/></svg>`;
+ if(kind==='fight')return `<div class="abs" style="inset:0;background:#1a1010"></div>${[150,230,310].map(y=>`<div class="abs" style="left:0;right:0;top:${y}px;height:12px;background:#c8352a;border-radius:6px"></div>`).join('')}<div class="abs" style="left:210px;top:90px;font-size:170px">🥊</div>`;
+ if(kind==='money')return `<div class="abs" style="inset:0;background:#123b2c"></div>`+[0,1,2,3,4].map(i=>`<div class="abs" style="left:${170+i*20}px;top:${250-i*34}px;width:260px;height:60px;border-radius:50%;background:#f2c641;border:5px solid #8a6a12"></div>`).join('')+`<div class="abs" style="left:60px;top:40px;font:800 70px KanitL;color:#9ff0c4">฿</div>`;
+ if(kind==='lotus')return `<div class="abs" style="inset:0;background:${(D.day||{}).hex||'#EE8B3C'}"></div>`+[...Array(8)].map((_,i)=>`<div class="abs" style="left:250px;top:110px;width:100px;height:200px;border-radius:50%;background:rgba(255,250,235,.55);transform-origin:50% 100%;transform:rotate(${i*45-157}deg)"></div>`).join('');
+ if(kind==='steam')return `<div class="abs" style="inset:0;background:linear-gradient(#9fd3e8,#e8f4f0)"></div><div class="abs" style="left:120px;top:260px;width:360px;height:120px;border-radius:50%;background:#5fb3c9;border:6px solid #2a1f19"></div>`+[0,1,2].map(i=>`<div class="abs" style="left:${200+i*80}px;top:${60+i*10}px;width:40px;height:180px;border-radius:20px;background:rgba(255,255,255,.75);filter:blur(6px)"></div>`).join('');
+ if(kind==='store')return `<div class="abs" style="inset:0;background:#e9f3ff"></div><div class="abs" style="left:110px;top:120px;width:380px;height:240px;background:#fff;border:6px solid #2a1f19;border-radius:12px"></div><div class="abs" style="left:110px;top:120px;width:380px;height:40px;background:linear-gradient(#f08a2c 0 33%,#4caf50 33% 66%,#d8322a 66%)"></div><div class="abs" style="left:250px;top:230px;width:100px;height:130px;background:#9fd3e8;border:5px solid #2a1f19"></div>`;
+ if(kind==='jungle')return `<div class="abs" style="inset:0;background:linear-gradient(#bfe3b0,#6fb27c)"></div><div class="abs" style="left:150px;top:90px;font-size:200px">🐘</div>`;
+ if(kind==='ticket')return `<div class="abs" style="inset:0;background:#c8352a"></div><div class="abs" style="left:80px;top:110px;width:440px;height:200px;background:#fff3d0;border:6px solid #2a1f19;border-radius:16px;display:flex;align-items:center;justify-content:center;font:800 64px Mono;letter-spacing:.1em">${(((D.lottery||{}).prizes||[])[0]||{numbers:['000000']}).numbers[0]}</div>`;
  return ''}
 
 // ---------------- common scenes ----------------
@@ -238,8 +252,157 @@ function cTomorrow(st,du){
  <div class="abs center" data-in="2.2" data-fx="drop" style="top:1490px"><div style="display:inline-block;background:var(--yellow);border:5px solid var(--ink);box-shadow:10px 12px 0 var(--ink);padding:18px 40px;border-radius:24px;transform:rotate(-2deg)"><div class="th" style="font-size:56px;font-weight:800">${wet?'☂️ พกร่มไปด้วยนะ':'☀️ อากาศดี ออกไปเที่ยวได้'}</div><div class="body" style="font-size:32px;font-weight:600">${wet?'Pack an umbrella tomorrow':'A good day to get out'}</div></div></div>
  ${FOOT('ข้อมูลจาก motdang.net · Open-Meteo')}`,{trans:'diag'});}
 
+
+// ---------------- extra components (rotating editions) ----------------
+function cEvents(st,du){
+ const ev=D.events||{list:[],today:0,week:0};const eve=SLOT==='evening';
+ return scene(st,du,`
+ <div class="abs" style="inset:0;background:linear-gradient(#fdf1d8,#faf5ea)"></div>
+ ${header(eve?'คืนนี้มีงานอะไร':'วันนี้มีงานอะไร',(eve?'TONIGHT':'TODAY')+' · EVENTS IN CHIANG MAI & CHIANG RAI')}
+ <div class="abs" style="left:60px;top:300px;width:960px;display:flex;gap:20px">
+  ${[[ev.today,eve?'งานคืนนี้':'งานวันนี้',eve?'TONIGHT':'TODAY'],[ev.week,'ใน 7 วัน','NEXT 7 DAYS']].map(([n,th,en],i)=>`<div data-in="${.5+i*.15}" data-fx="pop" class="card" style="flex:1;padding:14px 26px;position:relative"><div class="big" style="font-size:100px;line-height:1;color:var(--red)" data-count="${n}" data-cin="${.7+i*.15}"></div><div class="th" style="font-size:34px;font-weight:700">${th} <span class="mono" style="font-size:17px;opacity:.6">${en}</span></div></div>`).join('')}</div>
+ <div class="abs" data-in="1" data-fx="growY" style="left:150px;top:560px;width:10px;height:${Math.max(1,ev.list.length)*225}px;background:var(--ink);border-radius:5px;transform-origin:top"></div>
+ ${ev.list.map((e,i)=>`<div class="abs" data-in="${1.3+i*.35}" data-fx="pop" style="left:126px;top:${600+i*225}px;width:58px;height:58px;border-radius:50%;background:${['var(--red)','var(--yellow)','var(--green)','var(--blue)','#a35ad1'][i%5]};border:5px solid var(--ink)"></div>
+  <div class="abs card" data-in="${1.4+i*.35}" data-fx="right" style="left:220px;top:${560+i*225}px;width:800px;height:190px;padding:20px 28px">
+   <div style="display:flex;gap:14px;align-items:center"><span class="mono" style="font-weight:600;font-size:30px;background:var(--ink);color:var(--cream);padding:4px 16px;border-radius:10px">${e.time||'ทั้งวัน'}</span>${e.recurring?'<span class="mono" style="font-size:18px;opacity:.6">WEEKLY</span>':''}</div>
+   <div class="body" style="font-size:38px;font-weight:600;line-height:1.2;margin-top:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.title}</div>
+   <div class="body" style="font-size:26px;opacity:.65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📍 ${e.venue||'ดูรายละเอียดที่ motdang.net'}</div></div>`).join('')}
+ ${FOOT('ปฏิทินงานจาก motdang.net/events')}`,{trans:'iris'});}
+
+function cFight(st,du){
+ const f=D.fights||[];
+ return scene(st,du,`
+ <div class="abs" style="inset:0;background:radial-gradient(ellipse at 50% 30%,#3a1a14,#0e0807 70%)"></div>
+ <div class="abs beam" data-i="0" style="left:90px;top:-300px;width:900px;height:2400px;background:linear-gradient(90deg,transparent,rgba(255,230,180,.14),transparent);transform-origin:50% 0"></div>
+ ${[0,1,2].map(i=>`<svg class="abs rope" data-i="${i}" style="left:0;top:${1130+i*90}px" width="1080" height="80"><path d="M0 20 Q540 60 1080 20" stroke="${i===1?'#f2f2f2':'#c8352a'}" stroke-width="16" fill="none" stroke-linecap="round"/></svg>`).join('')}
+ ${header('มวยไทยคืนนี้','MUAY THAI TONIGHT · CHIANG MAI',1)}
+ <div class="abs glove" data-in=".5" data-fx="pop" style="left:340px;top:280px;font-size:330px;line-height:1">🥊</div>
+ <div class="abs center th" data-in="1" style="top:700px;font-size:64px;font-weight:800;color:var(--yellow)">${f.length} เวทีชกคืนนี้ <span class="mono" style="font-size:30px;color:var(--cream)">· ${f.length} STADIUMS</span></div>
+ ${f.slice(0,3).map((v,i)=>`<div class="abs" data-in="${1.4+i*.35}" data-fx="${i%2?'right':'left'}" style="left:80px;top:${820+i*260}px;width:920px;height:220px;background:var(--cream);color:var(--ink);border:5px solid var(--ink);border-radius:26px;box-shadow:10px 12px 0 #000;padding:22px 30px">
+  <div class="th" style="font-size:44px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${v.th}</div><div class="body" style="font-size:28px;opacity:.65">${v.en}</div>
+  <div style="display:flex;gap:16px;margin-top:14px"><span class="chip" style="background:var(--red);color:var(--cream)">🔔 ${v.start}–${v.end}</span>${v.from?`<span class="chip">ตั๋วเริ่ม ${v.from} ฿</span>`:''}</div></div>`).join('')}
+ ${FOOT('ตารางชกจาก motdang.net · ตามที่สนามแจ้ง')}`,{bg:'#0e0807',color:'var(--cream)',trans:'blinds',update:(lt,s)=>{
+  s.el.querySelectorAll('.rope').forEach(r=>r.style.transform=`translateY(${Math.sin(lt*3+ +r.dataset.i)*6}px)`);
+  s.el.querySelectorAll('.beam').forEach(b=>b.style.transform=`rotate(${Math.sin(lt*.8)*16}deg)`);
+  const g=s.el.querySelector('.glove');const p=(lt%1.2)/1.2;if(lt>1.4)g.style.transform=`scale(${1+Math.max(0,Math.sin(p*Math.PI*2))*.08}) rotate(${Math.sin(p*Math.PI*2)*-8}deg)`;}});}
+
+function cMoney(st,du){
+ const m=D.money||{fx:[],crypto:[]};const g=m.gold||{};const flag={USD:'🇺🇸',EUR:'🇪🇺',GBP:'🇬🇧',CNY:'🇨🇳',JPY:'🇯🇵'};
+ const fx=m.fx.map(r=>r.code==='JPY'?{...r,thb:r.thb*100,code:'JPY ×100'}:r);
+ return scene(st,du,`
+ <div class="abs" style="inset:0;background:radial-gradient(ellipse at 50% 20%,#1d5a43,#0c2a1f 75%)"></div>
+ ${header('ค่าเงิน · ทอง วันนี้','THB RATES · GOLD · CRYPTO',1)}
+ <div class="abs" style="left:60px;top:290px;width:960px;background:#0a1f17;border:5px solid #2f6b52;border-radius:28px;padding:18px 30px">
+  ${fx.map((r,i)=>`<div data-in="${.5+i*.15}" data-fx="left" style="display:flex;align-items:center;gap:20px;padding:12px 0;border-bottom:${i<fx.length-1?'2px dashed #2f6b52':'0'}"><span style="font-size:52px">${flag[r.code.slice(0,3)]||'💱'}</span><span class="mono" style="font-size:40px;font-weight:600;color:#9ff0c4;flex:1">${r.code}</span><span class="big" style="font-size:66px;color:#fff6d8" data-count="${r.thb}" data-dec="2" data-cin="${.6+i*.15}"></span><span class="th" style="font-size:30px;color:#9ff0c4">บาท</span></div>`).join('')}</div>
+ ${g.barSell?`<div class="abs" data-in="1.6" data-fx="pop" style="left:60px;top:1080px;width:960px;height:250px;background:linear-gradient(135deg,#f6d36b,#e0a92e);border:5px solid var(--ink);border-radius:28px;box-shadow:10px 12px 0 #000;color:var(--ink);padding:22px 30px">
+  <div class="th" style="font-size:40px;font-weight:800">🪙 ทองคำแท่ง ขายออก <span class="mono" style="font-size:20px;opacity:.65">GOLD BAR · SELL · 1 BAHT-WEIGHT</span></div>
+  <div class="big" style="font-size:110px;line-height:1.1"><span data-count="${g.barSell}" data-cin="1.8"></span><span class="th" style="font-size:44px"> บาท</span></div>
+  <div class="th" style="font-size:34px;font-weight:700;color:${(g.changeFromPrevDay||0)<0?'#8f1d16':'#1d6b3b'}">${(g.changeFromPrevDay||0)<0?'▼':'▲'} ${fmt(Math.abs(g.changeFromPrevDay||0))} จากวันก่อน</div></div>`:''}
+ <div class="abs" style="left:60px;top:1380px;width:960px;display:flex;gap:18px">
+  ${m.crypto.map((c,i)=>`<div data-in="${2.2+i*.15}" data-fx="pop" style="flex:1;background:var(--cream);color:var(--ink);border:4px solid var(--ink);border-radius:22px;padding:14px 18px"><div class="mono" style="font-size:28px;font-weight:600">${c.sym}</div><div class="big" style="font-size:40px">${fmt(c.thb)}฿</div><div class="mono" style="font-size:26px;font-weight:600;color:${c.chg24<0?'#c8352a':'#1d8b4b'}">${c.chg24<0?'▼':'▲'} ${Math.abs(c.chg24).toFixed(2)}%</div></div>`).join('')}</div>
+ <div class="abs center th" data-in="2.8" style="top:1640px;font-size:28px;color:#9ff0c4">ข้อมูลอ้างอิงเท่านั้น ไม่ใช่คำแนะนำการลงทุน · for reference, not advice</div>
+ ${FOOT('ข้อมูลจาก motdang.net · ธปท. · สมาคมค้าทองคำ · CoinGecko')}`,{bg:'#0c2a1f',color:'var(--cream)',trans:'diag'});}
+
+function cAirNorth(st,du){
+ const rows=[...D.air].sort((a,b)=>b.pm25-a.pm25).slice(0,9);const mx=Math.max(40,...rows.map(r=>r.pm25));
+ const best=rows[rows.length-1]||{},worst=rows[0]||{};
+ return scene(st,du,`
+ <div class="abs" style="inset:0;background:linear-gradient(#f3e3cf,#faf5ea 50%)"></div>
+ ${header('ฝุ่นทั่วภาคเหนือ','PM2.5 ACROSS THE NORTH · µg/m³')}
+ ${rows.map((r,i)=>{const [c,bt]=BAND(r.pm25);return `<div class="abs" data-in="${.5+i*.12}" data-fx="left" style="left:60px;top:${300+i*128}px;width:960px;height:104px">
+  <div class="th abs" style="left:0;top:22px;width:250px;font-size:38px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.th}</div>
+  <div class="abs" data-in="${.8+i*.12}" data-d="1.1" data-fx="growX" style="left:260px;top:14px;height:76px;width:${Math.max(40,r.pm25/mx*560)}px;background:${c};border:4px solid var(--ink);border-radius:0 18px 18px 0;transform-origin:left;box-shadow:6px 6px 0 var(--ink)"></div>
+  <div class="abs big" style="left:${280+Math.max(40,r.pm25/mx*560)}px;top:16px;font-size:56px" data-count="${r.pm25}" data-cin="${.9+i*.12}"></div></div>`}).join('')}
+ <div class="abs" style="left:60px;top:1500px;width:960px;display:flex;gap:20px">
+  <div data-in="2.4" data-fx="pop" class="card" style="flex:1;padding:16px 24px"><div class="th" style="font-size:28px">อากาศดีสุด <span class="mono" style="font-size:16px;opacity:.6">CLEANEST</span></div><div class="th" style="font-size:44px;font-weight:800;color:var(--blue)">${best.th||''} · ${best.pm25??''}</div></div>
+  <div data-in="2.6" data-fx="pop" class="card" style="flex:1;padding:16px 24px"><div class="th" style="font-size:28px">ฝุ่นมากสุด <span class="mono" style="font-size:16px;opacity:.6">HAZIEST</span></div><div class="th" style="font-size:44px;font-weight:800;color:var(--red)">${worst.th||''} · ${worst.pm25??''}</div></div></div>
+ ${FOOT('ข้อมูลจาก motdang.net · Open-Meteo CAMS (แบบจำลอง)')}`,{trans:'blinds'});}
+
+function cDayColour(st,du){
+ const d=D.day||{};const v=D.verse;const hex=d.hex||'#EE8B3C';
+ return scene(st,du,`
+ <div class="abs" style="inset:0;background:radial-gradient(circle at 50% 30%,${hex},${hex}cc 45%,#2a1f19 120%)"></div>
+ <div class="abs lotus" style="left:540px;top:520px">${[...Array(12)].map((_,i)=>`<div class="abs pet" data-i="${i}" style="left:-70px;top:-260px;width:140px;height:260px;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;background:rgba(255,250,235,${i%2?.35:.55});border:3px solid rgba(42,31,25,.25);transform-origin:50% 100%;transform:rotate(${i*30}deg)"></div>`).join('')}<div class="abs" style="left:-60px;top:-60px;width:120px;height:120px;border-radius:50%;background:#fff6d8;border:5px solid var(--ink)"></div></div>
+ <div class="abs center th" data-in=".3" style="top:90px;font-size:80px;font-weight:800;color:var(--cream);text-shadow:5px 6px 0 rgba(0,0,0,.35)">${d.th||''}</div>
+ <div class="abs center sub" data-in=".45" style="top:195px;color:var(--cream)">${(d.en||'').toUpperCase()} · DAY COLOUR</div>
+ <div class="abs center" data-in="1" data-fx="pop" style="top:820px"><span class="chip" style="font-size:52px;padding:14px 40px;background:var(--cream)"><span class="dot" style="width:40px;height:40px;background:${hex};border:3px solid var(--ink)"></span><b class="th">${d.colour_th||''}</b><span class="body" style="font-size:32px">· ${d.colour_en||''}</span></span></div>
+ ${d.buddha_th?`<div class="abs center th" data-in="1.3" style="top:960px;font-size:36px;color:var(--cream)">พระประจำวัน ${d.buddha_th} · <span class="body">${d.buddha_en}</span></div>`:''}
+ ${v?`<div class="abs card" data-in="1.8" data-fx="up" style="left:70px;top:1060px;width:940px;padding:30px 40px">
+  <div class="mono" style="font-size:22px;color:var(--red);font-weight:600">ธรรมะวันนี้ · VERSE OF THE DAY · ${v.ref}</div>
+  ${v.th.map((l,i)=>`<div class="th" data-in="${2.1+i*.15}" data-fx="wipe" style="font-size:38px;font-weight:500;line-height:1.35">${l}</div>`).join('')}
+  <div style="height:3px;background:var(--ink);opacity:.2;margin:14px 0"></div>
+  ${v.en.map((l,i)=>`<div class="body" data-in="${2.8+i*.15}" style="font-size:32px;font-style:italic;line-height:1.35">${l}</div>`).join('')}</div>`:''}
+ ${FOOT('motdang.net · Dhammapada (SuttaCentral, CC0)')}`,{bg:hex,color:'var(--cream)',trans:'iris',update:(lt,s)=>{
+  const k=E.back(P(lt,.2,1.4));s.el.querySelector('.lotus').style.transform=`scale(${Math.max(0,k)}) rotate(${lt*6}deg)`;
+  s.el.querySelectorAll('.pet').forEach(p=>{const i=+p.dataset.i;p.style.transform=`rotate(${i*30}deg) scaleY(${1+Math.sin(lt*1.5+i)*.04})`});}});}
+
+function cHotsprings(st,du){
+ const h=D.hotsprings||{provs:[],hot:[],total:0};const mx=Math.max(1,...h.provs.map(p=>p.n));seed=77;
+ return scene(st,du,`
+ <div class="abs" style="inset:0;background:linear-gradient(#bfe6ef,#eaf6f2 55%,#faf5ea)"></div>
+ ${[...Array(18)].map(()=>`<div class="abs steam" data-p="${rnd()}" data-x="${rnd()*1000}" style="width:${60+rnd()*80}px;height:${60+rnd()*80}px;border-radius:50%;background:rgba(255,255,255,.7);filter:blur(14px)"></div>`).join('')}
+ ${header('บ่อน้ำพุร้อนภาคเหนือ','NORTHERN HOT SPRINGS · REGISTER')}
+ <div class="abs center big" style="top:270px;font-size:150px;line-height:1;color:#1f7f97"><span data-count="${h.total}" data-cin=".6"></span><span class="th" style="font-size:52px;color:var(--ink)"> แห่ง</span></div>
+ <div class="abs card" data-in="1" style="left:60px;top:470px;width:960px;padding:20px 30px">
+  ${h.provs.map((p,i)=>`<div style="display:flex;align-items:center;gap:16px;height:74px"><span class="th" style="width:230px;font-size:34px;font-weight:700">${p.th}</span><div data-in="${1.2+i*.12}" data-d="1" data-fx="growX" style="height:44px;width:${p.n/mx*560}px;background:linear-gradient(90deg,#5fb3c9,#1f7f97);border:3px solid var(--ink);border-radius:0 14px 14px 0;transform-origin:left"></div><span class="big" style="font-size:40px">${p.n}</span></div>`).join('')}</div>
+ <div class="abs th" data-in="2.2" style="left:60px;top:1010px;font-size:42px;font-weight:800">ร้อนที่สุดในเชียงใหม่-เชียงราย <span class="mono" style="font-size:20px;opacity:.6">HOTTEST</span></div>
+ ${h.hot.map((x,i)=>`<div class="abs card" data-in="${2.4+i*.3}" data-fx="right" style="left:60px;top:${1090+i*200}px;width:960px;height:170px;padding:20px 30px;display:flex;align-items:center;gap:24px">
+  <div style="width:60px;height:130px;border-radius:30px;border:4px solid var(--ink);background:linear-gradient(to top,#d83a2a ${Math.min(100,x.temp)}%,#fff ${Math.min(100,x.temp)}%)"></div>
+  <div style="flex:1;min-width:0"><div class="th" style="font-size:42px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${x.name}</div><div class="th" style="font-size:28px;opacity:.65">อ.${x.amphoe}</div></div>
+  <div class="big" style="font-size:80px;color:var(--red)">${Math.round(x.temp)}°</div></div>`).join('')}
+ ${FOOT('ทะเบียนน้ำพุร้อนจาก motdang.net · กรมทรัพยากรธรณี · OSM')}`,{trans:'diag',update:(lt,s)=>{
+  s.el.querySelectorAll('.steam').forEach(e=>{const p=+e.dataset.p;const y=((p*1900+lt*120)%1900);e.style.transform=`translate(${+e.dataset.x+Math.sin(lt+p*9)*30}px,${1900-y}px)`;e.style.opacity=.2+.5*Math.sin(Math.PI*y/1900)})}});}
+
+function cSeven(st,du){
+ const c=(D.seven||{}).census||{seven_eleven:0,convenience:0,brands:{}},cov=(D.seven||{}).coverage||{};
+ const others=c.convenience-c.seven_eleven;const pct=c.convenience?c.seven_eleven/c.convenience:0;const R=230,C=2*Math.PI*R;
+ return scene(st,du,`
+ <div class="abs" style="inset:0;background:#eef6ff"></div>
+ <div class="abs" style="left:0;right:0;top:0;height:60px;background:linear-gradient(#f08a2c 0 33%,#4caf50 33% 66%,#d8322a 66%)"></div>
+ ${header('เซเว่นมีกี่สาขา?','HOW MANY 7-ELEVENS? · OUR MAP COUNT')}
+ <div class="abs" data-in=".5" data-fx="pop" style="left:290px;top:300px;width:500px;height:500px"><svg width="500" height="500" viewBox="-250 -250 500 500"><circle r="${R}" fill="none" stroke="#cfd8e3" stroke-width="54"/><circle class="arc7" r="${R}" fill="none" stroke="#2e9a4b" stroke-width="54" stroke-dasharray="${C}" stroke-dashoffset="${C}" transform="rotate(-90)"/><circle r="${R-27}" fill="none" stroke="#2a1f19" stroke-width="4"/><circle r="${R+27}" fill="none" stroke="#2a1f19" stroke-width="4"/></svg>
+  <div class="abs center big" style="top:150px;font-size:140px;line-height:1;color:#2e9a4b" data-count="${c.seven_eleven}" data-cin=".8" data-cd="2"></div><div class="abs center th" style="top:300px;font-size:38px;font-weight:700">สาขา 7-Eleven</div></div>
+ <div class="abs center th" data-in="2" style="top:840px;font-size:44px;font-weight:700">จากร้านสะดวกซื้อ ${fmt(c.convenience)} แห่ง · <span style="color:#2e9a4b">${Math.round(pct*100)}%</span></div>
+ <div class="abs" style="left:60px;top:960px;width:960px;display:flex;gap:20px">
+  <div data-in="2.3" data-fx="pop" class="card" style="flex:1;padding:20px 26px"><div class="th" style="font-size:30px">ร้านอื่น ๆ <span class="mono" style="font-size:16px;opacity:.6">OTHER BRANDS</span></div><div class="big" style="font-size:80px;color:var(--blue)">${fmt(others)}</div></div>
+  <div data-in="2.5" data-fx="pop" class="card" style="flex:1;padding:20px 26px"><div class="th" style="font-size:30px">ระยะถึงร้านใกล้สุด (มัธยฐาน) <span class="mono" style="font-size:16px;opacity:.6">MEDIAN</span></div><div class="big" style="font-size:80px;color:var(--red)">${fmt(cov.median_m||0)} ม.</div></div></div>
+ ${cov.total?`<div class="abs card" data-in="2.9" style="left:60px;top:1250px;width:960px;padding:24px 30px"><div class="th" style="font-size:34px;font-weight:700">จากสถานที่ ${fmt(cov.total)} แห่งในแผนที่มดแดง</div>
+  ${[[cov.within_200,'อยู่ใกล้ร้านไม่เกิน 200 ม.','#2e9a4b'],[cov.within_500,'ไม่เกิน 500 ม.','#f2c641'],[cov.beyond_5km,'ไกลเกิน 5 กม.','#c8352a']].map(([n,t,col],i)=>`<div style="display:flex;align-items:center;gap:14px;margin-top:14px"><div data-in="${3.1+i*.15}" data-d="1" data-fx="growX" style="height:40px;width:${n/cov.total*640}px;background:${col};border:3px solid var(--ink);border-radius:0 12px 12px 0;transform-origin:left"></div><span class="th" style="font-size:30px">${Math.round(n/cov.total*100)}% ${t}</span></div>`).join('')}</div>`:''}
+ ${FOOT('นับจาก OpenStreetMap ในฐานข้อมูล motdang.net · ODbL')}`,{trans:'iris',update:(lt,s)=>{s.el.querySelector('.arc7').setAttribute('stroke-dashoffset',C*(1-pct*E.out5(P(lt,.8,2.8))))}});}
+
+function cElephants(st,du){
+ const e=D.elephants||{n:0,noride:0,noshow:0,list:[]};
+ return scene(st,du,`
+ <div class="abs" style="inset:0;background:linear-gradient(#cfe9c2,#8fc59a)"></div>
+ ${[[-60,1500,1.6],[780,1550,1.3],[300,1700,1]].map(([x,y,s2])=>`<div class="abs" style="left:${x}px;top:${y}px;width:${360*s2}px;height:${260*s2}px;border-radius:50% 50% 0 0;background:#5aa86a"></div>`).join('')}
+ ${header('ปางช้างแบบไม่ขี่ช้าง','ELEPHANT PARKS · AS EACH VENUE STATES IT')}
+ <div class="abs ele" data-in=".4" data-fx="pop" style="left:380px;top:260px;font-size:260px;line-height:1">🐘</div>
+ <div class="abs" style="left:60px;top:590px;width:960px;display:flex;gap:18px">
+  ${[[e.n,'ปางในทะเบียน','LISTED','var(--ink)'],[e.noride,'ไม่มีขี่ช้าง','NO RIDING','#1d6b3b'],[e.noshow,'ไม่มีโชว์','NO SHOWS','var(--blue)']].map(([n,th,en,col],i)=>`<div data-in="${.8+i*.15}" data-fx="pop" class="card" style="flex:1;padding:16px 20px;text-align:center"><div class="big" style="font-size:96px;line-height:1;color:${col}" data-count="${n}" data-cin="${1+i*.15}"></div><div class="th" style="font-size:32px;font-weight:700">${th}</div><div class="mono" style="font-size:16px;opacity:.6">${en}</div></div>`).join('')}</div>
+ ${e.list.map((v,i)=>`<div class="abs card" data-in="${1.8+i*.3}" data-fx="${i%2?'right':'left'}" style="left:60px;top:${880+i*210}px;width:960px;height:180px;padding:20px 30px">
+  <div class="body" style="font-size:40px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${v.en}</div>
+  <div class="body" style="font-size:26px;opacity:.65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${v.self}</div>
+  <div style="display:flex;gap:12px;margin-top:10px">${v.n?`<span class="chip" style="font-size:24px">🐘 ${v.n}</span>`:''}${v.price?`<span class="chip th" style="font-size:24px">${v.price}</span>`:''}</div></div>`).join('')}
+ ${FOOT('ทะเบียนปางช้างจาก motdang.net/chang · ตามที่แต่ละปางประกาศ')}`,{trans:'blinds',update:(lt,s)=>{const el=s.el.querySelector('.ele');if(lt>1.2)el.style.transform=`translateY(${Math.sin(lt*2.4)*8}px) rotate(${Math.sin(lt*1.2)*3}deg)`;}});}
+
+function cLottery(st,du){
+ const l=D.lottery||{prizes:[]};const first=(l.prizes.find(p=>p.id==='first')||{numbers:['------']}).numbers[0];
+ return scene(st,du,`
+ <div class="abs" style="inset:0;background:radial-gradient(ellipse at 50% 35%,#d8322a,#7d1a13 80%)"></div>
+ ${header('ผลสลากงวดล่าสุด','GOVERNMENT LOTTERY · OFFICIAL RESULT',1)}
+ <div class="abs center th" data-in=".4" style="top:280px;font-size:40px;color:#ffe3a8">${l.date_th||''}</div>
+ <div class="abs center th" data-in=".7" style="top:380px;font-size:48px;font-weight:800;color:var(--yellow)">รางวัลที่ 1 · FIRST PRIZE</div>
+ <div class="abs" style="left:90px;top:470px;width:900px;display:flex;gap:14px;justify-content:center">
+  ${first.split('').map((ch,i)=>`<div class="digit" data-i="${i}" data-v="${ch}" style="width:132px;height:190px;background:#fff6d8;border:6px solid var(--ink);border-radius:20px;box-shadow:8px 10px 0 #000;display:flex;align-items:center;justify-content:center;font:800 130px KanitL;color:var(--ink)">0</div>`).join('')}</div>
+ <div class="abs" style="left:60px;top:770px;width:960px;display:grid;grid-template-columns:1fr 1fr;gap:20px">
+  ${l.prizes.filter(p=>p.id!=='first').map((p,i)=>`<div data-in="${2.6+i*.2}" data-fx="pop" style="background:var(--cream);color:var(--ink);border:4px solid var(--ink);border-radius:22px;box-shadow:8px 9px 0 #000;padding:16px 22px;${p.id==='last2'?'grid-column:span 2;text-align:center':''}"><div class="th" style="font-size:32px;font-weight:700">${p.th} <span class="mono" style="font-size:16px;opacity:.6">${p.en.toUpperCase()}</span></div><div class="mono" style="font-size:${p.id==='last2'?110:64}px;font-weight:600;letter-spacing:.1em">${p.numbers.join('  ')}</div></div>`).join('')}</div>
+ <div class="abs center" data-in="3.4" data-fx="pop" style="top:1440px"><span class="chip" style="font-size:40px;background:var(--yellow)"><span class="th">งวดถัดไป ${l.next_th||''}</span> · <span class="mono" style="font-size:30px">NEXT ${(l.next_en||'').toUpperCase()}</span></span></div>
+ <div class="abs center th" data-in="3.7" style="top:1560px;font-size:30px;color:#ffe3a8;padding:0 80px">บันทึกผลตามประกาศทางการ ไม่ใช่คำทำนาย · ตรวจกับสำนักงานสลากฯ เสมอ</div>
+ ${FOOT('ผลจาก motdang.net · สำนักงานสลากกินแบ่งรัฐบาล')}`,{bg:'#7d1a13',color:'var(--cream)',trans:'iris',lanterns:10,update:(lt,s)=>{
+  s.el.querySelectorAll('.digit').forEach(d=>{const i=+d.dataset.i;const stop=1+i*.25;if(lt<stop){d.textContent=Math.floor((lt*23+i*7))%10;d.style.transform=`translateY(${Math.sin(lt*30+i)*4}px)`}else{d.textContent=d.dataset.v;const k=P(lt,stop,stop+.3);d.style.transform=`scale(${1+Math.sin(k*Math.PI)*.12})`;d.style.background=k>0&&k<1?'#ffe08a':'#fff6d8'}})}});}
+
 // ---------------- timeline ----------------
-const BUILD={weatherNow:cWeatherNow,air:cAir,forecast7:cForecast,openNow:cOpenNow,cinema:cCinema,festival:cFestival,sky:cSky,tomorrow:cTomorrow};
+const BUILD={weatherNow:cWeatherNow,air:cAir,forecast7:cForecast,openNow:cOpenNow,cinema:cCinema,festival:cFestival,sky:cSky,tomorrow:cTomorrow,events:cEvents,fight:cFight,money:cMoney,airNorth:cAirNorth,dayColour:cDayColour,hotsprings:cHotsprings,seven:cSeven,elephants:cElephants,lottery:cLottery};
 const T=[[0,4.8],[4.2,5.0],[8.6,9.8],[17.8,10.0],[27.2,10.4],[37.0,8.0]];
 sIntro(...T[0]);sBrand(...T[1]);
 S.body.forEach((k,i)=>BUILD[k](...T[2+i]));

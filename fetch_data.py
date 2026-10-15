@@ -145,6 +145,107 @@ def main():
         d["festival"] = {"id": r["festival_id"], "th": th, "en": en, "days": days_left,
                          "date_th": f"{dd.day} {TH_MONTH[dd.month]}", "date_en": f"{dd.day} {EN_MON[dd.month]}",
                          "note_th": (r.get("note_th") or "")[:90], "note_en": (r.get("note_en") or "")[:110]}
+    # --- events (today; evening edition prefers things starting 17:00+)
+    ev = safe(lambda: get("/data/events.json"), {"events": []}).get("events", [])
+    todays = []
+    for e in ev:
+        st, en = e.get("start", ""), (e.get("end") or e.get("start", ""))
+        if st[:10] <= today <= en[:10] and e.get("title"):
+            if e.get("source") == "city-dates":
+                continue
+            tm = st[11:16] if st[:10] == today and st[11:16] != "00:00" else ""
+            todays.append({"time": tm, "title": e["title"][:70], "venue": (e.get("venue_name") or "")[:48] if not (e.get("venue_name") or "").startswith("[") else "",
+                           "recurring": bool(e.get("recurring")), "multi": st[:10] != en[:10]})
+    if slot == "evening":
+        todays = [e for e in todays if e["time"] >= "17:00"] or todays
+    todays.sort(key=lambda e: (e["recurring"], e["time"] or "99"))
+    pick = sorted(todays[:5], key=lambda e: e["time"] or "00:00")
+    week = sum(1 for e in ev if today <= e.get("start", "")[:10] <= (now.date() + dt.timedelta(days=6)).isoformat())
+    d["events"] = {"today": len(todays), "week": week, "list": pick}
+
+    # --- muay thai tonight
+    fn = safe(lambda: get("/data/fight_nights.json"), {"venues": []})
+    code = ["MO", "TU", "WE", "TH", "FR", "SA", "SU"][now.weekday()]
+    fights = []
+    for v in fn.get("venues", []):
+        if v.get("days") and code in v["days"]:
+            t = v.get("tickets_thb") or {}
+            fights.append({"th": v.get("name_th"), "en": v.get("name_en"), "start": v.get("start"), "end": v.get("end"),
+                           "from": min([x for x in t.values() if isinstance(x, (int, float))] or [0])})
+    d["fights"] = fights
+
+    # --- money
+    fi = safe(lambda: get("/data/finance.json"), {})
+    fx = (fi.get("fx") or {}).get("mid_thb", {})
+    d["money"] = {"fx": [{"code": k, "thb": fx[k]} for k in ("USD", "EUR", "GBP", "CNY", "JPY") if k in fx],
+                  "fx_date": (fi.get("fx") or {}).get("date"), "gold": fi.get("gold"),
+                  "crypto": (fi.get("crypto") or {}).get("coins", [])[:3]}
+
+    # --- day colour + verse of the day
+    fo = safe(lambda: get("/data/fortune.json"), {"days": {}})
+    th = ((fo.get("days") or {}).get(today) or {}).get("thai")
+    if not th:
+        cols = [("สีเหลือง", "yellow", "#F2C641"), ("สีชมพู", "pink", "#EE7FA8"), ("สีเขียว", "green", "#4FA36A"), ("สีส้ม", "orange", "#EE8B3C"),
+                ("สีฟ้า", "blue", "#4A90D9"), ("สีม่วง", "purple", "#8C5BC4"), ("สีแดง", "red", "#D8322A")]
+        c = cols[now.weekday()]
+        th = {"th": "วัน" + TH_DOW[now.weekday()], "en": EN_DOW[now.weekday()], "colour_th": c[0], "colour_en": c[1], "hex": c[2], "buddha_th": "", "buddha_en": ""}
+    th.pop("lucky", None)  # never show "lucky numbers"
+    d["day"] = th
+    sh = safe(lambda: get("/data/shuffle.json"), {})
+    kt = safe(lambda: get("/data/katha.json"), {"items": []}).get("items", [])
+    i = ((sh.get("today") or {}).get("katha_idx"))
+    v = kt[i] if (i is not None and i < len(kt)) else None
+    d["verse"] = v and {"ref": v.get("ref"), "th": v.get("th", [])[:4], "en": v.get("en", [])[:4], "gloss_th": v.get("gloss_th")}
+
+    # --- hot springs
+    hs = safe(lambda: get("/data/hotsprings.json"), {"provinces": {}, "springs": []})
+    provs = sorted(({"th": p["th"], "en": p["en"], "n": p["count"]} for p in hs.get("provinces", {}).values()), key=lambda x: -x["n"])[:6]
+    def tnum(x):
+        try: return float(str(x.get("tempC") or "").split("-")[-1])
+        except ValueError: return 0
+    hot = sorted([x for x in hs.get("springs", []) if x.get("province") in ("cm", "cr") and tnum(x) > 0], key=lambda x: -tnum(x))[:3]
+    d["hotsprings"] = {"total": len(hs.get("springs", [])), "provs": provs,
+                       "hot": [{"name": x.get("nameTh") or x.get("name"), "en": x.get("nameEn") or x.get("name"), "temp": tnum(x), "amphoe": x.get("amphoe_th") or ""} for x in hot]}
+
+    # --- 7-Eleven census
+    sv = safe(lambda: get("/data/seven.json"), {})
+    d["seven"] = {"census": sv.get("census"), "coverage": sv.get("coverage")}
+
+    # --- elephants (ethics as each venue states it)
+    el = safe(lambda: get("/data/elephants.json"), {"venues": []}).get("venues", [])
+    d["elephants"] = {"n": len(el), "noride": sum(1 for v in el if (v.get("stated") or {}).get("riding") == "no"),
+                      "noshow": sum(1 for v in el if (v.get("stated") or {}).get("shows") == "no"),
+                      "list": [{"en": v.get("name_en"), "self": v.get("self_en", "")[:60], "price": v.get("prices_th", ""), "n": v.get("elephants", "")}
+                               for v in el if (v.get("stated") or {}).get("riding") == "no"][:3]}
+
+    # --- lottery (official record only)
+    lo = safe(lambda: get("/data/lottery.json"), {}).get("draw") or {}
+    nxt_draw = now.date().replace(day=16) if now.day < 16 else (now.date().replace(day=28) + dt.timedelta(days=4)).replace(day=1)
+    d["lottery"] = lo and {"date_th": lo.get("date_th"), "date_en": lo.get("date_en"), "prizes": [{"id": p["id"], "th": p["th"], "en": p["en"], "numbers": p["numbers"][:2]} for p in lo.get("prizes", [])[:4]],
+                           "next_th": f"{nxt_draw.day} {TH_MONTH[nxt_draw.month]}", "next_en": f"{nxt_draw.day} {EN_MON[nxt_draw.month]}"}
+
+    # --- pick this edition's three body scenes (rotates daily so editions differ)
+    import random
+    rng = random.Random(today)  # one plan per day, so the three editions never repeat a scene
+    fresh_lotto = now.day in (1, 2, 16, 17) and bool(d["lottery"])
+    m_rest = rng.sample(["air", "forecast7", "airNorth", "money", "dayColour"], 2)
+    if "air" not in m_rest and "airNorth" not in m_rest:
+        m_rest[0] = rng.choice(["air", "airNorth"])
+    plan = {"morning": ["weatherNow"] + m_rest}
+    used = set(plan["morning"])
+    noon_pool = [p for p in ["openNow", "cinema", "festival", "events", "money", "hotsprings", "seven", "elephants"] if p not in used]
+    plan["noon"] = rng.sample(noon_pool, 3)
+    if fresh_lotto:
+        plan["noon"][2] = "lottery"
+    used |= set(plan["noon"])
+    eve_pool = [p for p in ["sky", "cinema", "events", "dayColour", "airNorth", "fight", "fight"] if p not in used and (p != "fight" or fights)]
+    e1 = rng.choice(eve_pool)
+    e2 = rng.choice([p for p in eve_pool if p != e1] or ["sky"])
+    plan["evening"] = [e1, e2, "tomorrow"]
+    body = plan.get(slot, plan["morning"])
+    d["body"] = body
+    d["variant"] = rng.randint(0, 2)
+
     json.dump(d, open(out, "w"), ensure_ascii=False, indent=1)
     print("wrote", out)
 
